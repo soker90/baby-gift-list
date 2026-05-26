@@ -909,7 +909,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // HELPERS DOM
 // ============================================================
 const $ = (s, root = document) => root.querySelector(s);
-const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+const qAll = (s, root = document) => [...root.querySelectorAll(s)];
 
 // ============================================================
 // TOAST
@@ -948,9 +948,9 @@ function showScreen(name) {
 // ============================================================
 // TABS LOCK SCREEN
 // ============================================================
-$$(".lock-tab").forEach(t => {
+qAll(".lock-tab").forEach(t => {
   t.addEventListener("click", () => {
-    $$(".lock-tab").forEach(x => x.classList.remove("active"));
+    qAll(".lock-tab").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
     const isGuest = t.dataset.tab === "guest";
     $("#guestPanel").style.display = isGuest ? "block" : "none";
@@ -1309,7 +1309,7 @@ function render() {
   grid.innerHTML = filtered.map(it => renderCard(it)).join("");
 
   // Asociar event listeners a las tarjetas
-  $$(".gift-card").forEach(card => {
+  qAll(".gift-card").forEach(card => {
     const id = card.dataset.id;
     card.querySelector(".action-btn.reserve")?.addEventListener("click",    () => toggleReserved(id));
     card.querySelector(".action-btn.essential")?.addEventListener("click",  () => toggleEssential(id));
@@ -1510,9 +1510,9 @@ async function deleteGift(id) {
 // ============================================================
 // FILTROS
 // ============================================================
-$$(".filter-chip").forEach(chip => {
+qAll(".filter-chip").forEach(chip => {
   chip.addEventListener("click", () => {
-    $$(".filter-chip").forEach(c => c.classList.remove("active"));
+    qAll(".filter-chip").forEach(c => c.classList.remove("active"));
     chip.classList.add("active");
     currentFilter = chip.dataset.filter;
     render();
@@ -1561,7 +1561,7 @@ function addLinkRow(data = {}) {
   `;
   row.querySelector(".link-remove-btn").addEventListener("click", () => {
     if ($("#linksEditor").children.length > 1) row.remove();
-    else $$("input", row).forEach(i => i.value = "");
+    else qAll("input", row).forEach(i => i.value = "");
   });
   $("#linksEditor").appendChild(row);
 }
@@ -1573,9 +1573,9 @@ async function saveModal() {
   const photo     = $("#fPhoto").value.trim();
   const note      = $("#fNote").value.trim();
   const essential = $("#fEssential").checked;
-  const links     = $$(".link-editor-row").map(row => {
+  const links     = qAll(".link-editor-row").map(row => {
     const obj = {};
-    $$("input", row).forEach(i => obj[i.dataset.k] = i.value.trim());
+    qAll("input", row).forEach(i => obj[i.dataset.k] = i.value.trim());
     return obj;
   }).filter(l => l.url || l.label);
 
