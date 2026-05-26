@@ -1050,13 +1050,15 @@ async function tryAdminEnter() {
   btn.textContent = "Entrar como admin";
 
   if (error) {
-    // No revelar si el email existe o no (seguridad básica)
     $("#adminError").textContent = "Email o contraseña incorrectos.";
     return;
   }
 
-  // El listener onAuthStateChange ya maneja la sesión
-  // (se dispara automáticamente tras signInWithPassword)
+  // Gestionar directamente sin depender de onAuthStateChange,
+  // ya que en versiones recientes de Supabase el evento puede
+  // llegar como INITIAL_SESSION en vez de SIGNED_IN.
+  role = "admin";
+  await loadAdminLists(data.user.id);
 }
 
 // ============================================================
@@ -1079,11 +1081,13 @@ $("#logoutBtn").addEventListener("click", async () => {
 // y también al cargar la página si hay sesión guardada.
 // ============================================================
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === "SIGNED_IN" && session) {
+  // Solo restaurar sesión existente al cargar la página.
+  // El login manual lo gestiona tryAdminEnter directamente.
+  // INITIAL_SESSION se dispara al cargar si ya había sesión guardada.
+  if (event === "INITIAL_SESSION" && session && role === null) {
     role = "admin";
     await loadAdminLists(session.user.id);
   }
-  // SIGNED_OUT lo gestiona el botón de logout directamente
 });
 
 // ============================================================
@@ -1693,16 +1697,17 @@ async function tryAutoEntryFromUrl() {
 
 // ============================================================
 // INIT
-// Orden: 1) ¿hay sesión admin activa? → admin flow
+// Orden: 1) ¿hay sesión admin activa? → admin flow (via onAuthStateChange INITIAL_SESSION)
 //        2) ¿hay ?list= en la URL?    → guest auto-entry
 //        3) Mostrar lock screen
 // ============================================================
 (async function init() {
-  // 1. Verificar sesión existente (el usuario cerró el navegador y volvió)
+  // 1. onAuthStateChange con INITIAL_SESSION gestiona la restauración
+  //    de sesión admin. Pero tiene una race condition: se dispara de
+  //    forma asíncrona. Esperamos la sesión explícitamente para evitar
+  //    que el lock screen parpadee antes de que llegue el evento.
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    // onAuthStateChange no se dispara para sesiones ya existentes
-    // en todas las versiones, así que lo manejamos explícitamente.
     role = "admin";
     await loadAdminLists(session.user.id);
     return;
