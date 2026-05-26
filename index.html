@@ -1177,7 +1177,14 @@ async function enterApp() {
 
   if (role === "admin") {
     $("#shareBanner").style.display = "flex";
-    const url = location.origin + location.pathname + "?list=" + secretId;
+    // location.origin es "null" cuando se abre como archivo local (file://).
+    // En ese caso usamos solo el pathname + param, que igual no sirve para
+    // compartir pero al menos no muestra "null". En producción (https://)
+    // funciona correctamente.
+    const origin = (location.origin && location.origin !== "null")
+      ? location.origin
+      : "";
+    const url = origin + location.pathname + "?list=" + secretId;
     $("#shareUrl").textContent = url;
   } else {
     $("#shareBanner").style.display = "none";
