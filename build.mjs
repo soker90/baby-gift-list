@@ -113,25 +113,28 @@ const appScriptCode  = appScriptFull.replace(/^<script[^>]*>/i, "").replace(/<\/
 console.log("\n⚙️  Ofuscando y minificando JS…");
 const terserResult = await minifyJS(appScriptCode, {
   compress: {
-    passes:         3,
-    drop_console:   false,   // mantener console.error para depuración
-    drop_debugger:  true,
-    pure_getters:   true,
-    unsafe_methods: true,
+    passes:               2,
+    drop_console:         false,  // mantener console.error para depuración
+    drop_debugger:        true,
+    pure_getters:         true,
+    // unsafe_methods desactivado: con múltiples pasadas puede colapsar
+    // closures anidados y provocar colisiones de nombres de parámetros
+    unsafe_methods:       false,
+    unsafe_arrows:        false,
     booleans_as_integers: false,
+    // Mantener los nombres de funciones async nombradas para que
+    // las llamadas cruzadas entre funciones no se rompan
+    keep_fnames:          /^(tryAdminEnter|tryGuestEnter|enterApp|loadGifts|render|init|loadAdminLists|createNewList|selectList|showListSelector|subscribeRealtime|handleRealtimeEvent|cleanupRealtime|toggleReserved|toggleEssential|toggleBought|deleteGift|openModal|closeModal|saveModal|addLinkRow|tryAutoEntryFromUrl)$/,
   },
-  mangle: {
-    // No mangling de propiedades para no romper las claves de Supabase/DOM
-    properties: false,
-    // Sí ofuscar nombres de variables y funciones locales
-    toplevel: false,
-  },
+  // mangle desactivado: terser con passes múltiples puede renombrar
+  // parámetros de callbacks anidados al mismo nombre (e.g. "e") y
+  // provocar que el closure interno shadee el externo, rompiendo la lógica.
+  // La compresión sigue siendo efectiva solo con el paso compress.
+  mangle: false,
   output: {
-    comments: false,   // eliminar todos los comentarios
-    ascii_only: false,
+    comments:    false,  // eliminar todos los comentarios
+    ascii_only:  false,
   },
-  // Mantener nombres de funciones llamadas desde atributos HTML (ninguna en este caso)
-  keep_fnames: false,
 });
 
 if (terserResult.error) {
