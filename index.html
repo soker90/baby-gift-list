@@ -202,6 +202,98 @@
   }
   .new-list-btn:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
 
+  /* --- INITIAL SKELETON --- */
+  #initialSkeleton {
+    max-width: 1180px;
+    margin: 0 auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  #initialSkeleton.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #initialSkeleton.gone { display: none; }
+
+  @keyframes sk-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+  .sk-block {
+    border-radius: 8px;
+    background: var(--cream-2);
+    animation: sk-pulse 1.6s ease-in-out infinite;
+  }
+
+  /* header skeleton */
+  .sk-header {
+    text-align: center;
+    padding: 24px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .sk-deco { width: 100px; height: 100px; border-radius: 50%; }
+  .sk-title { width: 52%; height: 30px; border-radius: 10px; animation-delay: 0.1s; }
+  .sk-title-2 { width: 38%; height: 30px; border-radius: 10px; animation-delay: 0.2s; }
+  .sk-subtitle { width: 65%; height: 14px; border-radius: 6px; margin-top: 4px; animation-delay: 0.15s; }
+
+  /* filters skeleton */
+  .sk-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding: 0 4px;
+  }
+  .sk-chip {
+    height: 36px;
+    border-radius: 999px;
+    background: white;
+    box-shadow: var(--shadow);
+    animation: sk-pulse 1.6s ease-in-out infinite;
+  }
+  .sk-chip:nth-child(1) { width: 72px; animation-delay: 0s; }
+  .sk-chip:nth-child(2) { width: 130px; animation-delay: 0.1s; }
+  .sk-chip:nth-child(3) { width: 100px; animation-delay: 0.2s; }
+  .sk-chip:nth-child(4) { width: 90px; animation-delay: 0.3s; }
+
+  /* grid skeleton — same columns as real .grid */
+  .sk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+  .sk-gift-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+  .sk-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    animation: sk-pulse 1.6s ease-in-out infinite;
+  }
+  .sk-gift-card:nth-child(1) .sk-photo { background: var(--cream-2); animation-delay: 0s; }
+  .sk-gift-card:nth-child(2) .sk-photo { background: var(--rose); animation-delay: 0.1s; }
+  .sk-gift-card:nth-child(3) .sk-photo { background: var(--sage); animation-delay: 0.2s; }
+  .sk-gift-card:nth-child(4) .sk-photo { background: var(--cream-2); animation-delay: 0.15s; }
+  .sk-gift-card:nth-child(5) .sk-photo { background: var(--butter); animation-delay: 0.05s; }
+  .sk-gift-card:nth-child(6) .sk-photo { background: var(--rose); animation-delay: 0.25s; }
+  .sk-card-body {
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sk-card-body .sk-block { border-radius: 6px; animation: sk-pulse 1.6s ease-in-out infinite; }
+  .sk-gift-card:nth-child(odd) .sk-card-body .sk-block { animation-delay: 0.1s; }
+  .sk-name { height: 16px; }
+  .sk-note { height: 12px; width: 75%; }
+  .sk-note-2 { height: 12px; width: 50%; }
+
   /* --- MAIN APP --- */
   .app { max-width: 1180px; margin: 0 auto; display: none; }
   .app.visible { display: block; }
@@ -743,8 +835,32 @@
 </head>
 <body>
 
+<!-- ============ INITIAL SKELETON (visible por defecto si hay ?list=) ============ -->
+<div id="initialSkeleton">
+  <header class="sk-header">
+    <div class="sk-block sk-deco"></div>
+    <div class="sk-block sk-title"></div>
+    <div class="sk-block sk-title-2"></div>
+    <div class="sk-block sk-subtitle"></div>
+  </header>
+  <div class="sk-filters">
+    <div class="sk-chip"></div>
+    <div class="sk-chip"></div>
+    <div class="sk-chip"></div>
+    <div class="sk-chip"></div>
+  </div>
+  <div class="sk-grid">
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div><div class="sk-block sk-note-2"></div></div></div>
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div><div class="sk-block sk-note-2"></div></div></div>
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div><div class="sk-block sk-note-2"></div></div></div>
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div></div></div>
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div></div></div>
+    <div class="sk-gift-card"><div class="sk-photo"></div><div class="sk-card-body"><div class="sk-block sk-name"></div><div class="sk-block sk-note"></div><div class="sk-block sk-note-2"></div></div></div>
+  </div>
+</div>
+
 <!-- ============ LOCK / HOME SCREEN ============ -->
-<div id="lockScreen" class="lock-screen">
+<div id="lockScreen" class="lock-screen" style="display:none">
   <svg class="lock-illustration" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
     <ellipse cx="60" cy="140" rx="50" ry="14" fill="#f7d4cc" opacity="0.5"/>
     <path d="M40 110 Q40 90 60 90 Q65 75 85 80 Q105 70 115 90 Q135 88 135 108 Q135 125 115 125 L60 125 Q40 125 40 110Z" fill="#fff"/>
@@ -937,6 +1053,12 @@ let realtimeChannel = null; // suscripción realtime activa
 // ============================================================
 function showScreen(name) {
   // name: "lock" | "selector" | "app"
+  // Fade out el skeleton y luego ocultarlo del DOM
+  const sk = $("#initialSkeleton");
+  if (!sk.classList.contains("gone")) {
+    sk.classList.add("hidden");
+    setTimeout(() => sk.classList.add("gone"), 320);
+  }
   $("#lockScreen").style.display    = name === "lock"     ? "block" : "none";
   $("#listSelector").style.display  = name === "selector" ? "block" : "none";
   $("#app").classList.toggle("visible", name === "app");
@@ -1699,6 +1821,12 @@ async function tryAutoEntryFromUrl() {
 //        3) Mostrar lock screen
 // ============================================================
 (async function init() {
+  // Si no hay ?list= en la URL, el skeleton no tiene sentido → ocultarlo ya
+  if (!new URLSearchParams(location.search).has("list")) {
+    const sk = $("#initialSkeleton");
+    sk.classList.add("hidden", "gone");
+  }
+
   // 1. onAuthStateChange con INITIAL_SESSION gestiona la restauración
   //    de sesión admin. Pero tiene una race condition: se dispara de
   //    forma asíncrona. Esperamos la sesión explícitamente para evitar
