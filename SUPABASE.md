@@ -34,6 +34,7 @@ create table gifts (
   essential boolean default false,
   bought boolean default false,
   reserved boolean default false,
+  reserved_by text,
   links jsonb default '[]',
   position integer default 0,
   created_at timestamptz default now()
@@ -99,13 +100,16 @@ create policy "gifts_delete_owner"
 
 ## Paso 4: Crear la función RPC para reservas
 
-Los invitados reservan regalos a través de esta función en lugar de un UPDATE directo. Al usar `SECURITY DEFINER` y validar el `secret_id` internamente, se garantiza que solo se modifica el campo `reserved` — ningún otro campo.
+Los invitados reservan regalos a través de esta función en lugar de un UPDATE directo. Al usar `SECURITY DEFINER` y validar el `secret_id` internamente, se garantiza que solo se modifican los campos `reserved` y `reserved_by` — ningún otro campo.
+
+Al reservar (`p_reserved = true`) se exige un nombre de al menos 3 caracteres (tras quitar espacios). Al cancelar (`p_reserved = false`) se limpia `reserved_by`, independientemente de quién la cancele.
 
 ```sql
 create or replace function toggle_reserved(
   p_gift_id uuid,
   p_reserved boolean,
-  p_secret_id text
+  p_secret_id text,
+  p_reserved_by text default null
 )
 returns void
 language plpgsql
@@ -113,8 +117,14 @@ security definer
 set search_path = public
 as $$
 begin
+  if p_reserved and length(trim(coalesce(p_reserved_by, ''))) < 3 then
+    raise exception 'reserved_by must be at least 3 characters';
+  end if;
+
   update gifts
-  set reserved = p_reserved
+  set
+    reserved = p_reserved,
+    reserved_by = case when p_reserved then trim(p_reserved_by) else null end
   where id = p_gift_id
     and list_id in (
       select id from lists where secret_id = p_secret_id
@@ -127,9 +137,27 @@ end;
 $$;
 ```
 
+> **Migración de una instalación existente**: si ya tenías la tabla `gifts` creada, ejecuta primero:
+> ```sql
+> alter table gifts add column if not exists reserved_by text;
+> ```
+> y después vuelve a ejecutar el `create or replace function toggle_reserved` de arriba para sustituir la versión anterior.
+
 ---
 
-## Paso 5: Crear el usuario admin
+## Paso 5: Notificaciones por email (Resend)
+
+Cada vez que se reserva o cancela un regalo, el frontend llama a una Netlify Function (`netlify/functions/notify-reservation.js`) que envía un email a `reservas@unregaloparabea.es` usando [Resend](https://resend.com).
+
+1. En el panel de Netlify del sitio, ve a **Site configuration → Environment variables**.
+2. Añade la variable `RESEND_API_KEY` con tu API key de Resend (dominio `unregaloparabea.es` ya verificado).
+3. Vuelve a desplegar el sitio para que la función recoja la variable.
+
+No hace falta ninguna configuración adicional en Supabase para esto: el email se dispara desde el navegador del invitado hacia la función de Netlify justo después de que el RPC `toggle_reserved` se complete con éxito.
+
+---
+
+## Paso 6: Crear el usuario admin
 
 1. Ve a **Authentication** en el panel lateral
 2. Clic en **Add user** → **Create new user**
@@ -138,7 +166,7 @@ $$;
 
 ---
 
-## Paso 6: Obtener las claves y pegarlas en el HTML
+## Paso 7: Obtener las claves y pegarlas en el HTML
 
 1. Ve a **Project Settings** → **API**
 2. Copia **Project URL** → pégala en `SUPABASE_URL`

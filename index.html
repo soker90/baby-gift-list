@@ -995,6 +995,22 @@
   </div>
 </div>
 
+<!-- ============ MODAL RESERVA ============ -->
+<div class="modal-backdrop" id="reserveModal">
+  <div class="modal">
+    <h2>Reservar regalo</h2>
+    <div class="form-group">
+      <label>Tu nombre (opcional)</label>
+      <input type="text" id="fReserveName" placeholder="ej. María" maxlength="60" />
+      <small>Se guardará junto a la reserva (mínimo 3 caracteres).</small>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="reserveCancel">Cancelar</button>
+      <button class="btn-primary" id="reserveSave">Reservar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ============ SUPABASE CDN ============ -->
@@ -1331,7 +1347,7 @@ async function loadGifts() {
 
   const { data, error } = await sb
     .from("gifts")
-    .select("id, name, photo_url, note, essential, bought, reserved, links, position, created_at")
+    .select("id, name, photo_url, note, essential, bought, reserved, reserved_by, links, position, created_at")
     .eq("list_id", currentListId)
     .order("position", { ascending: true })
     .order("created_at", { ascending: false });
@@ -1539,34 +1555,107 @@ function escapeAttr(s) { return escapeHtml(s); }
 // ============================================================
 
 // -- Reservar (invitados y admin) --
-// Usa RPC para que solo se modifique el campo "reserved".
-// Un invitado no puede tocar ningún otro campo aunque lo
-// intente desde la consola del navegador.
+// Usa RPC para que solo se modifique el campo "reserved"
+// (y "reserved_by"). Un invitado no puede tocar ningún otro
+// campo aunque lo intente desde la consola del navegador.
+//
+// Al reservar se pide el nombre de quien reserva (mínimo 3
+// caracteres) mediante un modal. Al cancelar no se pide nada
+// (cualquier invitado puede cancelar cualquier reserva), pero
+// el email de notificación usa el "reserved_by" que ya estaba
+// guardado antes de cancelar, para que la info sea siempre
+// correcta.
+let reserveModalGiftId = null;
+
 async function toggleReserved(id) {
   const it = gifts.find(g => g.id === id);
   if (!it || it.bought) return;
 
-  const newVal = !it.reserved;
+  if (!it.reserved) {
+    openReserveModal(id);
+    return;
+  }
+
+  await applyReservation(id, false, null);
+}
+
+async function applyReservation(id, newVal, personName) {
+  const it = gifts.find(g => g.id === id);
+  if (!it) return;
+
+  const previousReservedBy = it.reserved_by || null;
 
   // Optimistic update: actualizar UI antes de confirmar
   it.reserved = newVal;
+  it.reserved_by = newVal ? personName : null;
   render();
 
   const { error } = await sb.rpc("toggle_reserved", {
-    p_gift_id:   id,
-    p_reserved:  newVal,
-    p_secret_id: secretId,
+    p_gift_id:      id,
+    p_reserved:     newVal,
+    p_secret_id:    secretId,
+    p_reserved_by:  newVal ? personName : null,
   });
 
   if (error) {
     // Revertir si falló
     it.reserved = !newVal;
+    it.reserved_by = previousReservedBy;
     render();
     showToast("No se pudo reservar. Inténtalo de nuevo.", true);
     return;
   }
 
   showToast(newVal ? "Reservado ✓" : "Reserva cancelada");
+
+  notifyReservation({
+    action: newVal ? "reserved" : "cancelled",
+    giftName: it.name,
+    personName: newVal ? personName : previousReservedBy,
+  });
+}
+
+function openReserveModal(id) {
+  reserveModalGiftId = id;
+  $("#fReserveName").value = "";
+  $("#reserveModal").classList.add("visible");
+  setTimeout(() => $("#fReserveName").focus(), 50);
+}
+
+function closeReserveModal() {
+  reserveModalGiftId = null;
+  $("#reserveModal").classList.remove("visible");
+}
+
+async function confirmReserve() {
+  const id = reserveModalGiftId;
+  if (!id) return;
+
+  const name = $("#fReserveName").value.trim();
+  if (name.length < 3) {
+    showToast("Escribe tu nombre (mínimo 3 caracteres)", true);
+    $("#fReserveName").focus();
+    return;
+  }
+
+  closeReserveModal();
+  await applyReservation(id, true, name);
+}
+
+// -- Notificación por email (Resend, vía Netlify Function) --
+// Fire-and-forget: no bloquea la UI ni impide la reserva/
+// cancelación si el envío del email falla.
+function notifyReservation({ action, giftName, personName }) {
+  fetch("/.netlify/functions/notify-reservation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action,
+      giftName,
+      personName: personName || "(desconocido)",
+      timestamp: new Date().toISOString(),
+    }),
+  }).catch(() => { /* no interrumpe la experiencia del usuario */ });
 }
 
 // -- Marcar imprescindible (solo admin) --
@@ -1657,6 +1746,10 @@ $("#modalCancel").addEventListener("click", closeModal);
 $("#modalSave").addEventListener("click",   saveModal);
 $("#addLinkBtn").addEventListener("click",  () => addLinkRow());
 $("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+$("#reserveCancel").addEventListener("click", closeReserveModal);
+$("#reserveSave").addEventListener("click", confirmReserve);
+$("#reserveModal").addEventListener("click", e => { if (e.target.id === "reserveModal") closeReserveModal(); });
+$("#fReserveName").addEventListener("keydown", e => { if (e.key === "Enter") confirmReserve(); });
 
 function openModal(id) {
   if (role !== "admin") return;

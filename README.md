@@ -55,9 +55,18 @@ Conecta el repo y configura:
 |---|---|
 | Build command | `node build.mjs` |
 | Publish directory | `dist` |
+| Functions directory | `netlify/functions` |
 | Node version | `20` |
 
-O arrastra directamente el `dist/index.html` a [app.netlify.com](https://app.netlify.com).
+Estos valores ya están declarados en `netlify.toml`, así que Netlify los detecta automáticamente.
+
+### Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `RESEND_API_KEY` | API key de [Resend](https://resend.com), usada por la función `netlify/functions/notify-reservation.js` para enviar el email de aviso a `reservas@unregaloparabea.es` cuando se reserva o cancela un regalo. Configúrala en **Site configuration → Environment variables** en Netlify. |
+
+O arrastra directamente el `dist/index.html` a [app.netlify.com](https://app.netlify.com) (en ese caso las Netlify Functions no funcionarán; hace falta conectar el repo).
 
 ## Configuración de Supabase
 
