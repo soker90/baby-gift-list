@@ -932,9 +932,9 @@
 
   <div class="controls-row">
     <div class="filters" id="filters">
-      <button class="filter-chip active" data-filter="all">Todos <span class="count" id="countAll">0</span></button>
+      <button class="filter-chip" data-filter="all">Todos <span class="count" id="countAll">0</span></button>
       <button class="filter-chip" data-filter="essential">⭐ Imprescindibles <span class="count" id="countEssential">0</span></button>
-      <button class="filter-chip" data-filter="available">Disponibles <span class="count" id="countAvailable">0</span></button>
+      <button class="filter-chip active" data-filter="available">Disponibles <span class="count" id="countAvailable">0</span></button>
       <button class="filter-chip" data-filter="reserved">Reservados <span class="count" id="countReserved">0</span></button>
     </div>
     <button class="add-btn" id="addBtn" style="display:none">
@@ -1060,7 +1060,7 @@ let currentListId = null;   // uuid de lists.id (no el secret_id)
 let secretId      = null;   // secret_id de la lista activa
 let gifts         = [];     // array de regalos cargados
 let adminLists    = [];     // listas del admin (para selector)
-let currentFilter = "all";
+let currentFilter = "available";
 let editingId     = null;
 let realtimeChannel = null; // suscripción realtime activa
 
