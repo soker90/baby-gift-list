@@ -124,7 +124,7 @@ const terserResult = await minifyJS(appScriptCode, {
     booleans_as_integers: false,
     // Mantener los nombres de funciones async nombradas para que
     // las llamadas cruzadas entre funciones no se rompan
-    keep_fnames:          /^(tryAdminEnter|tryGuestEnter|enterApp|loadGifts|render|init|loadAdminLists|createNewList|selectList|showListSelector|subscribeRealtime|handleRealtimeEvent|cleanupRealtime|toggleReserved|toggleEssential|toggleBought|deleteGift|openModal|closeModal|saveModal|addLinkRow|tryAutoEntryFromUrl)$/,
+    keep_fnames:          /^(tryAdminEnter|tryGuestEnter|enterApp|loadGifts|render|init|loadAdminLists|createNewList|selectList|showListSelector|subscribeRealtime|handleRealtimeEvent|cleanupRealtime|toggleReserved|toggleEssential|togglePreBirth|toggleBought|deleteGift|openModal|closeModal|saveModal|addLinkRow|tryAutoEntryFromUrl)$/,
   },
   // mangle desactivado: terser con passes múltiples puede renombrar
   // parámetros de callbacks anidados al mismo nombre (e.g. "e") y

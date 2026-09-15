@@ -4,7 +4,7 @@ Lista de regalos para bebé. Web estática de un solo archivo HTML con backend e
 
 ## Qué hace
 
-- El admin crea y gestiona la lista de regalos (añadir, editar, borrar, marcar como imprescindible o comprado)
+- El admin crea y gestiona la lista de regalos (añadir, editar, borrar, marcar como imprescindible, antes del nacimiento o comprado)
 - Los invitados acceden solo a través de un enlace con ID secreto y pueden reservar regalos
 - Las reservas se actualizan en tiempo real para todos los que tienen la lista abierta
 - Soporte para múltiples listas por admin

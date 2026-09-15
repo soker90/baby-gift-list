@@ -32,6 +32,7 @@ create table gifts (
   photo_url text,
   note text,
   essential boolean default false,
+  pre_birth boolean default false,
   bought boolean default false,
   reserved boolean default false,
   reserved_by text,
@@ -137,11 +138,12 @@ end;
 $$;
 ```
 
-> **Migración de una instalación existente**: si ya tenías la tabla `gifts` creada, ejecuta primero:
+> **Migración de una instalación existente**: si ya tenías la tabla `gifts` creada, ejecuta en el SQL Editor:
 > ```sql
 > alter table gifts add column if not exists reserved_by text;
+> alter table gifts add column if not exists pre_birth boolean default false;
 > ```
-> y después vuelve a ejecutar el `create or replace function toggle_reserved` de arriba para sustituir la versión anterior.
+> y después vuelve a ejecutar el `create or replace function toggle_reserved` de arriba si aún no lo habías actualizado.
 
 ---
 
